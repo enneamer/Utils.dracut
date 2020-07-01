@@ -1,3 +1,11 @@
+dracut (050+65-1) unstable; urgency=medium
+
+  * control: add breaks and replaces, Closes: #959852
+  * merge upstream changes, Closes: #963989
+  * add module nvmf
+
+ -- Thomas Lange <lange@debian.org>  Wed, 01 Jul 2020 12:13:36 +0200
+
 dracut (050+35-4) unstable; urgency=high
 
   * add git tag, so dracut shows correct version
