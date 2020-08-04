@@ -3,7 +3,7 @@ dracut for Debian
 
 1. Give it a try
 
-Currently dracut is not the default initrd craetion tool in Debian.
+Currently dracut is not the default initrd creation tool in Debian.
 You can try dracut without removing initramfs-tools from your machine
 by following these steps:
 
