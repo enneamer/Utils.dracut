@@ -1,0 +1,93 @@
+--- a/dracut-initramfs-restore.sh
++++ b/dracut-initramfs-restore.sh
+@@ -19,7 +19,7 @@
+ if [[ $MACHINE_ID ]] && [[ -d /boot/${MACHINE_ID} || -L /boot/${MACHINE_ID} ]] ; then
+     IMG="/boot/${MACHINE_ID}/${KERNEL_VERSION}/initrd"
+ fi
+-[[ -f $IMG ]] || IMG="/boot/initramfs-${KERNEL_VERSION}.img"
++[[ -f $IMG ]] || IMG="/boot/initrd.img-${KERNEL_VERSION}"
+
+ cd /run/initramfs
+
+--- a/dracut.8.asc
++++ b/dracut.8.asc
+@@ -19,7 +19,7 @@
+ Create an initramfs <image> for the kernel with the version <kernel version>.
+ If <kernel version> is omitted, then the version of the actual running
+ kernel is used. If <image> is omitted or empty, then the default location
+-/boot/initramfs-<kernel version>.img is used.
++/boot/initrd.img-<kernel version> is used.
+
+ dracut creates an initial image used by the kernel for preloading the block
+ device modules (such as IDE, SCSI or RAID) which are needed to access the root
+--- a/dracut.sh
++++ b/dracut.sh
+@@ -836,11 +836,11 @@
+         outfile="$dracutsysrootdir$efidir/Linux/linux-$kernel${MACHINE_ID:+-${MACHINE_ID}}${BUILD_ID:+-${BUILD_ID}}.efi"
+     else
+         if [[ -e "$dracutsysrootdir/boot/vmlinuz-$kernel" ]]; then
+-            outfile="/boot/initramfs-$kernel.img"
++            outfile="/boot/initrd.img-$kernel"
+         elif [[ $MACHINE_ID ]] && ( [[ -d $dracutsysrootdir/boot/${MACHINE_ID} ]] || [[ -L $dracutsysrootdir/boot/${MACHINE_ID} ]] ); then
+             outfile="$dracutsysrootdir/boot/${MACHINE_ID}/$kernel/initrd"
+         else
+-            outfile="$dracutsysrootdir/boot/initramfs-$kernel.img"
++            outfile="$dracutsysrootdir/boot/initrd.img-$kernel"
+         fi
+     fi
+ fi
+--- a/dracut.usage.asc
++++ b/dracut.usage.asc
+@@ -5,7 +5,7 @@
+
+ This will generate a general purpose initramfs image, with all possible
+ functionality resulting of the combination of the installed dracut modules and
+-system tools. The image is /boot/initramfs-_++<kernel version>++_.img and
++system tools. The image is /boot/initrd.img-_++<kernel version>++_ and
+ contains the kernel modules of the currently active kernel with version
+ _++<kernel version>++_.
+
+--- a/lsinitrd.1.asc
++++ b/lsinitrd.1.asc
+@@ -19,7 +19,7 @@
+ -----------
+ lsinitrd shows the contents of an initramfs image. if <image> is omitted, then
+ lsinitrd uses the default image _/boot/<machine-id>/<kernel-version>/initrd_ or
+-_/boot/initramfs-<kernel-version>.img_.
++_/boot/initrd.img-<kernel-version>.
+
+ OPTIONS
+ -------
+--- a/lsinitrd.sh
++++ b/lsinitrd.sh
+@@ -102,7 +102,7 @@
+         && [[ -d /boot/${MACHINE_ID} || -L /boot/${MACHINE_ID} ]] ; then
+         image="/boot/${MACHINE_ID}/${KERNEL_VERSION}/initrd"
+     else
+-        image="/boot/initramfs-${KERNEL_VERSION}.img"
++        image="/boot/initrd.img-${KERNEL_VERSION}"
+     fi
+ fi
+
+--- a/mkinitrd-dracut.sh
++++ b/mkinitrd-dracut.sh
+@@ -16,7 +16,7 @@
+     $cmd "       [--nocompress]"
+     $cmd "       <initrd-image> <kernel-version>"
+     $cmd ""
+-    $cmd "       (ex: ${0##*/} /boot/initramfs-$kver.img $kver)"
++    $cmd "       (ex: ${0##*/} /boot/initrd.img-$kver $kver)"
+
+     [[ $1 = '-n' ]] && exit 0
+     exit 1
+--- a/test/TEST-16-DMSQUASH/test.sh
++++ b/test/TEST-16-DMSQUASH/test.sh
+@@ -86,7 +86,7 @@
+         done
+         inst_simple /etc/os-release
+         inst ./test-init.sh /sbin/init
+-        inst "$TESTDIR"/initramfs.testing "/boot/initramfs-$KVERSION.img"
++        inst "$TESTDIR"/initramfs.testing "/boot/initrd.img-$KVERSION"
+         [[ -f /etc/machine-id ]] && read MACHINE_ID < /etc/machine-id
+
+         VMLINUZ="/lib/modules/${KVERSION}/vmlinuz"

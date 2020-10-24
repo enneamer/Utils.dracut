@@ -3,5 +3,5 @@ microcode
 crc32c
 plymouth
 multipath
-initramfs-restore
+initrd-not-initramfs.patch
 dev-shm-mount
