@@ -1,6 +1,6 @@
 --- a/modules.d/90multipath/module-setup.sh
 +++ b/modules.d/90multipath/module-setup.sh
-@@ -101,7 +101,7 @@
+@@ -102,7 +102,7 @@
      inst $(command -v partx) /sbin/partx
  
      inst_libdir_file "libmultipath*" "multipath/*"
