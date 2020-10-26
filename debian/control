@@ -43,15 +43,8 @@ Architecture: all
 Recommends: nfs-common, open-iscsi, nbd-client, curl
 Depends: dracut-core, iputils-arping, isc-dhcp-client, ${misc:Depends}
 Description: dracut is an event driven initramfs infrastructure (network modules)
- Unlike existing initramfs's, this is an attempt at having as little as
- possible hard-coded into the initramfs as possible.  The initramfs has
- (basically) one purpose in life -- getting the rootfs mounted so that
- we can transition to the real rootfs.  This is all driven off of
- device availability.  Therefore, instead of scripts hard-coded to do
- various things, we depend on udev to create device nodes for us and
- then when we have the rootfs's device node, we mount and carry on.
- Having the root on MD, LVM2, LUKS is supported as well as NFS, iSCSI,
- NBD and FCOE with dracut-network.
+ Package to build a dracut initramfs with network support. This
+ includes dracut modules for NFS, CIFS, iSCSI, HTTP, NBD, FCP and FCOE.
 
 Package: dracut-squash
 Architecture: all
