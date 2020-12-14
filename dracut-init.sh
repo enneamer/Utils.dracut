@@ -183,7 +183,7 @@ for i in $DRACUT_INSTALL ; do
     DRINSTALLPARTS=$(($DRINSTALLPARTS+1))
 done
 
-if [[ $DRINSTALLPARTS = 1 ]] && ! [[ -x $DRACUT_INSTALL ]]; then
+if [[ $DRINSTALLPARTS = 1 ]] && ! command -v "$DRACUT_INSTALL" > /dev/null 2>&1 ; then
     dfatal "dracut-install not found!"
     exit 10
 fi
@@ -839,7 +839,7 @@ check_module() {
     [[ $2 ]] || mods_checked_as_dep+=" $_mod "
 
     if [[ " $omit_dracutmodules " == *\ $_mod\ * ]]; then
-        dinfo "dracut module '$_mod' will not be installed, because it's in the list to be omitted!"
+        ddebug "dracut module '$_mod' will not be installed, because it's in the list to be omitted!"
         return 1
     fi
 

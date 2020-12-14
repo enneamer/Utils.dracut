@@ -38,7 +38,7 @@ depends() {
 
 # called by dracut
 installkernel() {
-    hostonly='' instmods =net/sunrpc =fs/nfs ipv6 nfs_acl nfs_layout_nfsv41_files
+    hostonly=$(optional_hostonly) instmods =net/sunrpc =fs/nfs ipv6 nfs_acl nfs_layout_nfsv41_files
 }
 
 cmdline() {
@@ -47,7 +47,6 @@ cmdline() {
     local nfs_root
     local nfs_address
     local lookup
-    local ifname
 
     ### nfsroot= ###
     nfs_device=$(findmnt -t nfs4 -n -o SOURCE /)
@@ -69,21 +68,9 @@ cmdline() {
         lookup=$(host "${nfs_device%%:*}"| grep " address " | head -n1)
         nfs_address=${lookup##* }
     fi
-    ifname=$(ip -o route get to $nfs_address | sed -n 's/.*dev \([^ ]*\).*/\1/p')
-    if [ -d /sys/class/net/$ifname/bonding ]; then
-        dinfo "Found bonded interface '${ifname}'. Make sure to provide an appropriate 'bond=' cmdline."
-        return
-    elif [ -e /sys/class/net/$ifname/address ] ; then
-        ifmac=$(cat /sys/class/net/$ifname/address)
-        printf 'ifname=%s:%s ' ${ifname} ${ifmac}
-    fi
 
-    bootproto=$(sed -n "/BOOTPROTO/s/BOOTPROTO='\([[:alpha:]]*6\?\)4\?'/\1/p" /etc/sysconfig/network/ifcfg-$ifname)
-    if [ $bootproto ]; then
-        printf 'ip=%s:%s ' ${ifname} ${bootproto}
-    else
-        printf 'ip=%s:static ' ${ifname}
-    fi
+    [[ $nfs_address ]] || return
+    ip_params_for_remote_addr "$nfs_address"
 }
 
 # called by dracut
@@ -127,7 +114,8 @@ install() {
     inst "$moddir/nfs-lib.sh" "/lib/nfs-lib.sh"
     mkdir -m 0755 -p "$initdir/var/lib/nfs/rpc_pipefs"
     mkdir -m 0770 -p "$initdir/var/lib/rpcbind"
-    mkdir -m 0755 -p "$initdir/var/lib/nfs/statd/sm"
+    [ -d "$initdir/var/lib/nfs/statd/sm" ] && mkdir -m 0755 -p "$initdir/var/lib/nfs/statd/sm"
+    [ -d "$initdir/var/lib/nfs/sm" ] && mkdir -m 0755 -p "$initdir/var/lib/nfs/sm"
 
     # Rather than copy the passwd file in, just set a user for rpcbind
     # We'll save the state and restart the daemon from the root anyway

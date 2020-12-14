@@ -1,24 +1,36 @@
 #!/bin/bash
 
 check() {
+    if ! dracut_module_included "systemd-initrd"; then
+        derror "dracut-squash only supports systemd bases initramfs"
+        return 1
+    fi
+
+    if ! type -P mksquashfs >/dev/null || ! type -P unsquashfs >/dev/null ; then
+        derror "dracut-squash module requires squashfs-tools"
+        return 1
+    fi
+
+    for i in squashfs loop overlay; do
+        if ! check_kernel_module $i; then
+            derror "dracut-squash module requires kernel module $i"
+            return 1
+        fi
+    done
+
     return 255
 }
 
 depends() {
-    echo "bash systemd systemd-initrd"
+    echo "bash systemd-initrd"
     return 0
 }
 
 installkernel() {
-    hostonly="" instmods -c squashfs loop overlay
+    hostonly="" instmods squashfs loop overlay
 }
 
 install() {
-    if ! type -P mksquashfs >/dev/null || ! type -P unsquashfs >/dev/null ; then
-        derror "squash module requires squashfs-tools to be installed."
-        return 1
-    fi
-
     inst_multiple kmod modprobe mount mkdir ln echo
     inst $moddir/setup-squash.sh /squash/setup-squash.sh
     inst $moddir/clear-squash.sh /squash/clear-squash.sh
