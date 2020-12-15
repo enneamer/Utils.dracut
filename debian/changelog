@@ -1,3 +1,16 @@
+dracut (051-1) unstable; urgency=low
+
+  * new upstream version
+  * control: change description, Closes: #967923
+  * source/options: add pattern for files to ignore by dpkg-source
+  * fix-revdate: update modification dates
+
+  [ Antonio Russo ]
+  * Patch occurrences of /boot/initramfs to /boot/initrd to match Debian
+    default names, Closes: #972809
+
+ -- Thomas Lange <lange@debian.org>  Tue, 15 Dec 2020 16:23:33 +0100
+
 dracut (050+65-1) unstable; urgency=medium
 
   * control: add breaks and replaces, Closes: #959852
