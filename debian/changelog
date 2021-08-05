@@ -1,7 +1,14 @@
 dracut (055-1) UNRELEASED; urgency=medium
 
+  [ Dominik George ]
   * Team upload.
   * New upstream version
+
+  [ Andre Russ ]
+  * Refresh patches for dracut 055
+    + systemd needs more users in Debian
+    + crc32c patch was applied upstream
+    + several minor changes
 
  -- Dominik George <natureshadow@debian.org>  Thu, 05 Aug 2021 13:31:22 +0200
 
