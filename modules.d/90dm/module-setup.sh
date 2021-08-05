@@ -13,13 +13,13 @@ depends() {
 
 # called by dracut
 installkernel() {
-    instmods =drivers/md dm_mod dm-cache dm-cache-mq dm-cache-cleaner
+    instmods '=drivers/md' dm_mod dm-cache dm-cache-mq dm-cache-cleaner
 }
 
 # called by dracut
 install() {
-    modinfo -k $kernel dm_mod >/dev/null 2>&1 && \
-        inst_hook pre-udev 30 "$moddir/dm-pre-udev.sh"
+    modinfo -k "$kernel" dm_mod > /dev/null 2>&1 \
+        && inst_hook pre-udev 30 "$moddir/dm-pre-udev.sh"
 
     inst_multiple dmsetup
     inst_multiple -o dmeventd
@@ -40,4 +40,3 @@ install() {
 
     inst_hook shutdown 25 "$moddir/dm-shutdown.sh"
 }
-
