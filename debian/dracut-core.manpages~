@@ -6,3 +6,4 @@ man/dracut.cmdline.7
 man/dracut-catimages.8
 man/lsinitrd.1
 debian/tmp/usr/share/man/man8/*
+

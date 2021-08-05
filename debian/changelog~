@@ -9,9 +9,6 @@ dracut (055-1) UNRELEASED; urgency=medium
     + systemd needs more users in Debian
     + crc32c patch was applied upstream
     + several minor changes
-  * Update installed files
-    + Several docs were moved upstream
-    + mkinitrd was removed
 
  -- Dominik George <natureshadow@debian.org>  Thu, 05 Aug 2021 13:31:22 +0200
 
