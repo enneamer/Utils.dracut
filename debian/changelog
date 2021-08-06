@@ -1,4 +1,4 @@
-dracut (055-1) UNRELEASED; urgency=medium
+dracut (055-1) experimental; urgency=low
 
   [ Dominik George ]
   * Team upload.
@@ -13,7 +13,7 @@ dracut (055-1) UNRELEASED; urgency=medium
     + Several docs were moved upstream
     + mkinitrd was removed
 
- -- Dominik George <natureshadow@debian.org>  Thu, 05 Aug 2021 13:31:22 +0200
+ -- Dominik George <natureshadow@debian.org>  Fri, 06 Aug 2021 11:36:31 +0200
 
 dracut (051-1) unstable; urgency=low
 
