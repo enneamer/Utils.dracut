@@ -2,7 +2,7 @@ dracut (055-1) UNRELEASED; urgency=medium
 
   [ Dominik George ]
   * Team upload.
-  * New upstream version
+  * New upstream version (Closes: #991918)
 
   [ Andre Russ ]
   * Refresh patches for dracut 055
