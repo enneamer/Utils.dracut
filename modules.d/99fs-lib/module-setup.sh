@@ -10,9 +10,8 @@ depends() {
     return 0
 }
 
-
 echo_fs_helper() {
-    local dev=$1 fs=$2
+    local fs=$2
     case "$fs" in
         xfs)
             echo -n " xfs_db xfs_repair xfs_check xfs_metadump "
@@ -36,9 +35,9 @@ echo_fs_helper() {
 }
 
 include_fs_helper_modules() {
-    local dev=$1 fs=$2
+    local fs=$2
     case "$fs" in
-        xfs|btrfs|ext4)
+        xfs | btrfs | ext4 | ext3)
             instmods crc32c
             ;;
         f2fs)
@@ -63,27 +62,28 @@ install() {
     local _helpers
 
     inst "$moddir/fs-lib.sh" "/lib/fs-lib.sh"
-    > ${initdir}/etc/fstab.empty
+    : > "${initdir}"/etc/fstab.empty
 
-    [[ "$nofscks" = "yes" ]] && return
+    [[ $nofscks == "yes" ]] && return
 
-    if [[ "$fscks" = "${fscks#*[^ ]*}" ]]; then
-        _helpers="\
-            umount mount /sbin/fsck* /usr/sbin/fsck*
+    if [[ $fscks == "${fscks#*[^ ]*}" ]]; then
+        _helpers=(
+            /sbin/fsck* /usr/sbin/fsck*
             xfs_db xfs_check xfs_repair xfs_metadump
             e2fsck jfs_fsck reiserfsck btrfsck
-        "
+        )
         if [[ $hostonly ]]; then
-            _helpers="umount mount "
-            _helpers+=$(for_each_host_dev_fs echo_fs_helper)
+            read -r -a _helpers < <(for_each_host_dev_fs echo_fs_helper)
         fi
     else
-        _helpers="$fscks"
+        read -r -a _helpers <<< "$fscks"
     fi
 
-    if [[ "$_helpers" == *e2fsck* ]] && [ -e $dracutsysrootdir/etc/e2fsck.conf ]; then
+    _helpers+=(umount mount)
+
+    if [[ ${_helpers[*]} == *e2fsck* ]] && [[ -e $dracutsysrootdir/etc/e2fsck.conf ]]; then
         inst_simple /etc/e2fsck.conf
     fi
 
-    inst_multiple -o $_helpers fsck
+    inst_multiple -o "${_helpers[@]}" fsck
 }

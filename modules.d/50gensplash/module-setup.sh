@@ -21,7 +21,7 @@ install() {
     call_splash_geninitramfs() {
         local _out _ret
 
-        _out=$(splash_geninitramfs -c "$1" ${@:2} 2>&1)
+        _out=$(splash_geninitramfs -c "$1" "${@:2}" 2>&1)
         _ret=$?
 
         if [[ ${_out} ]]; then
@@ -32,7 +32,7 @@ install() {
                     dwarn "${line}"
                 else
                     derror "${line}"
-                    (( $_ret == 0 )) && _ret=1
+                    ((_ret == 0)) && _ret=1
                 fi
             done
         fi
@@ -40,7 +40,7 @@ install() {
         return ${_ret}
     }
 
-    type -P splash_geninitramfs >/dev/null || return 1
+    find_binary splash_geninitramfs > /dev/null || return 1
 
     _opts=''
     if [[ ${DRACUT_GENSPLASH_THEME} ]]; then
@@ -52,7 +52,8 @@ install() {
         _splash_res=${DRACUT_GENSPLASH_RES}
     elif [[ ${hostonly} ]]; then
         # Settings from config only in hostonly
-        [[ -e $dracutsysrootdir/etc/conf.d/splash ]] && source $dracutsysrootdir/etc/conf.d/splash
+        # shellcheck disable=SC1090
+        [[ -e $dracutsysrootdir/etc/conf.d/splash ]] && source "$dracutsysrootdir"/etc/conf.d/splash
         [[ ! ${_splash_theme} ]] && _splash_theme=default
         [[ ${_splash_res} ]] && _opts+=" -r ${_splash_res}"
     else
@@ -62,15 +63,15 @@ install() {
 
     dinfo "Installing Gentoo Splash (using the ${_splash_theme} theme)"
 
-    pushd "${initdir}" >/dev/null
+    pushd "${initdir}" > /dev/null || exit
     mv dev dev.old
-    call_splash_geninitramfs "${initdir}" ${_opts} ${_splash_theme} || {
+    call_splash_geninitramfs "${initdir}" "${_opts}" ${_splash_theme} || {
         derror "Could not build splash"
         return 1
     }
     rm -rf dev
     mv dev.old dev
-    popd >/dev/null
+    popd > /dev/null || exit
 
     inst_multiple chvt
     inst /usr/share/splashutils/initrd.splash /lib/gensplash-lib.sh

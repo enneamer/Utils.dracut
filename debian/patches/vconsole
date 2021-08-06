@@ -1,12 +1,12 @@
 --- a/modules.d/00systemd/module-setup.sh
 +++ b/modules.d/00systemd/module-setup.sh
-@@ -242,7 +242,8 @@
-         systemd-ask-password-plymouth.service \
-         ; do
-         [[ -f $systemdsystemunitdir/$i ]] || continue
--        systemctl -q --root "$initdir" add-wants "$i" systemd-vconsole-setup.service
-+        # systemctl -q --root "$initdir" add-wants "$i" systemd-vconsole-setup.service
-+        true
+@@ -232,7 +232,8 @@
+         systemd-ask-password-console.service \
+         systemd-ask-password-plymouth.service; do
+         [[ -f "$systemdsystemunitdir"/$i ]] || continue
+-        $SYSTEMCTL -q --root "$initdir" add-wants "$i" systemd-vconsole-setup.service
++        # $SYSTEMCTL -q --root "$initdir" add-wants "$i" systemd-vconsole-setup.service
++	true
      done
  
      mkdir -p "$initdir/etc/systemd"
