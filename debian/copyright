@@ -17,12 +17,12 @@ Copyright:
 License: GPL-2+
 
 Files:
-  install/hashmap.* install/log.*
-  install/macro.h install/util.*
+  src/install/hashmap.* src/install/log.*
+  src/install/macro.h src/install/util.*
 Copyright: 2010 Lennart Poettering
 License: LGPL-2.1+
 
-Files: install/dracut-install.c
+Files: src/install/dracut-install.c
 Copyright:
  (C) 2012 Harald Hoyer
  (C) 2012 Red Hat, Inc.  All rights reserved.
