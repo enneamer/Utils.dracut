@@ -17,7 +17,7 @@ check() {
 depends() {
 
     # This module has external dependency on other module(s).
-    echo systemd-sysusers systemd-udev
+    echo systemd-sysusers systemd-udevd
     # Return 0 to include the dependent module(s) in the initramfs.
     return 0
 
@@ -52,6 +52,7 @@ install() {
         {"tls/$_arch/",tls/,"$_arch/",}"libtss2-tcti-swtpm.so.*" \
         {"tls/$_arch/",tls/,"$_arch/",}"libtss2-tctildr.so.*" \
         {"tls/$_arch/",tls/,"$_arch/",}"libcryptsetup.so.*" \
+        {"tls/$_arch/",tls/,"$_arch/",}"/cryptsetup/libcryptsetup-token-systemd-tpm2.so" \
         {"tls/$_arch/",tls/,"$_arch/",}"libcurl.so.*" \
         {"tls/$_arch/",tls/,"$_arch/",}"libjson-c.so.*"
 

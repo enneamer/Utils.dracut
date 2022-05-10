@@ -45,7 +45,6 @@ check() {
     local _arch=${DRACUT_ARCH:-$(uname -m)}
     local _ccw
     [ "$_arch" = "s390" -o "$_arch" = "s390x" ] || return 1
-    require_binaries /usr/lib/udev/collect || return 1
 
     [[ $hostonly ]] || [[ $mount_needs ]] && {
         found=0
@@ -66,7 +65,6 @@ depends() {
 
 # called by dracut
 install() {
-    inst_multiple /usr/lib/udev/collect
     inst_hook cmdline 30 "$moddir/parse-zfcp.sh"
     if [[ $hostonly_cmdline == "yes" ]]; then
         local _zfcp
@@ -76,7 +74,7 @@ install() {
         done
     fi
     if [[ $hostonly ]]; then
-        inst_rules_wildcard 51-zfcp-*.rules
-        inst_rules_wildcard 41-s390x-zfcp-*.rules
+        inst_rules_wildcard "51-zfcp-*.rules"
+        inst_rules_wildcard "41-zfcp-*.rules"
     fi
 }
