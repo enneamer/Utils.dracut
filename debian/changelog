@@ -7,6 +7,7 @@ dracut (056-1) UNRELEASED; urgency=medium
     + Accounted for moved source files
     + Accounted for source files written by authors not mentioned yet
     + Accounted for a vendored Rust module (crosvm).
+  * Install newly splut systemd modules
 
  -- Dominik George <natureshadow@debian.org>  Tue, 10 May 2022 15:09:16 +0200
 
