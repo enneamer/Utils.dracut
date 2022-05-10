@@ -1,16 +1,3 @@
---- a/dracut-initramfs-restore.sh
-+++ b/dracut-initramfs-restore.sh
-@@ -24,8 +24,8 @@
-     && [[ $MACHINE_ID ]] \
-     && [[ -d /boot/${MACHINE_ID} || -L /boot/${MACHINE_ID} ]]; then
-     IMG="/boot/${MACHINE_ID}/${KERNEL_VERSION}/initrd"
--elif [[ -f /boot/initramfs-${KERNEL_VERSION}.img ]]; then
--    IMG="/boot/initramfs-${KERNEL_VERSION}.img"
-+elif [[ -f /boot/initrd.img-${KERNEL_VERSION} ]]; then
-+    IMG="/boot/initrd.img-${KERNEL_VERSION}"
- elif [[ -f /lib/modules/${KERNEL_VERSION}/initrd ]]; then
-     IMG="/lib/modules/${KERNEL_VERSION}/initrd"
- else
 --- a/man/dracut.8.asc
 +++ b/man/dracut.8.asc
 @@ -19,7 +19,7 @@
@@ -19,12 +6,12 @@
  kernel is used. If <image> is omitted or empty, then the default location
 -/boot/initramfs-<kernel version>.img is used.
 +/boot/initrd.img-<kernel version> is used.
-
+ 
  dracut creates an initial image used by the kernel for preloading the block
  device modules (such as IDE, SCSI or RAID) which are needed to access the root
 --- a/dracut.sh
 +++ b/dracut.sh
-@@ -1039,11 +1039,11 @@
+@@ -1054,11 +1054,11 @@
          outfile="$dracutsysrootdir$efidir/Linux/linux-$kernel${MACHINE_ID:+-${MACHINE_ID}}${BUILD_ID:+-${BUILD_ID}}.efi"
      else
          if [[ -e $dracutsysrootdir/boot/vmlinuz-$kernel ]]; then
@@ -41,14 +28,14 @@
 --- a/man/dracut.usage.asc
 +++ b/man/dracut.usage.asc
 @@ -5,7 +5,7 @@
-
+ 
  This will generate a general purpose initramfs image, with all possible
  functionality resulting of the combination of the installed dracut modules and
 -system tools. The image is /boot/initramfs-_++<kernel version>++_.img and
 +system tools. The image is /boot/initrd.img-_++<kernel version>++_ and
  contains the kernel modules of the currently active kernel with version
  _++<kernel version>++_.
-
+ 
 --- a/man/lsinitrd.1.asc
 +++ b/man/lsinitrd.1.asc
 @@ -19,7 +19,7 @@
@@ -57,7 +44,7 @@
  lsinitrd uses the default image _/boot/<machine-id>/<kernel-version>/initrd_ or
 -_/boot/initramfs-<kernel-version>.img_.
 +_/boot/initrd.img-<kernel-version>.
-
+ 
  OPTIONS
  -------
 --- a/lsinitrd.sh
@@ -70,7 +57,7 @@
 +        image="/boot/initrd.img-${KERNEL_VERSION}"
      fi
  fi
-
+ 
 --- a/test/TEST-16-DMSQUASH/test.sh
 +++ b/test/TEST-16-DMSQUASH/test.sh
 @@ -99,7 +99,7 @@

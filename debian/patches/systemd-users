@@ -1,5 +1,5 @@
---- a/modules.d/00systemd/module-setup.sh	2021-05-27 12:34:19.000000000 +0000
-+++ b/modules.d/00systemd/module-setup.sh	2021-07-26 22:13:44.847143617 +0000
+--- a/modules.d/00systemd/module-setup.sh
++++ b/modules.d/00systemd/module-setup.sh
 @@ -201,6 +201,8 @@
          grep '^adm:' "$dracutsysrootdir"/etc/passwd 2> /dev/null
          # we don't use systemd-networkd, but the user is in systemd.conf tmpfiles snippet
@@ -17,4 +17,4 @@
 +        grep '^systemd-resolve:' "$dracutsysrootdir"/etc/group 2> /dev/null
      } >> "$initdir/etc/group"
  
-     ln_r "$systemdutildir"/systemd "/init"
+     local _systemdbinary="$systemdutildir"/systemd

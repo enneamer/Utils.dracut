@@ -1,6 +1,6 @@
 --- a/dracut.sh
 +++ b/dracut.sh
-@@ -1766,7 +1766,7 @@
+@@ -2157,7 +2157,7 @@
                  if [[ $hostonly ]]; then
                      _src=$(get_ucode_file)
                      [[ $_src ]] || break
