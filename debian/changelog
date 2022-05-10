@@ -1,3 +1,10 @@
+dracut (056-1) UNRELEASED; urgency=medium
+
+  * Team upload.
+  * New upstream version
+
+ -- Dominik George <natureshadow@debian.org>  Tue, 10 May 2022 15:09:16 +0200
+
 dracut (055-1) experimental; urgency=low
 
   [ Dominik George ]
