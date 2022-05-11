@@ -1,4 +1,4 @@
-dracut (056-2) UNRELEASED; urgency=medium
+dracut (056-2) experimental; urgency=low
 
   * Team upload.
   * Fix conflict between dracut-{core,live,network} after failed amendment
