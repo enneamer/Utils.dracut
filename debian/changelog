@@ -1,3 +1,11 @@
+dracut (056-2) UNRELEASED; urgency=medium
+
+  * Team upload.
+  * Fix conflict between dracut-{core,live,network} after failed amendment
+    of modules list
+
+ -- Dominik George <natureshadow@debian.org>  Wed, 11 May 2022 12:39:03 +0200
+
 dracut (056-1) experimental; urgency=low
 
   * Team upload.
