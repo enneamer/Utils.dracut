@@ -12,7 +12,7 @@ depends() {
 
 # called by dracut
 installkernel() {
-    instmods overlay
+    hostonly='' instmods overlay
 }
 
 install() {
