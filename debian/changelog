@@ -1,3 +1,13 @@
+dracut (056-3) unstable; urgency=low
+
+  * new upstream, Closes: #991918
+  * control: Remove unnecessary constraints, demote pkg-config to
+    Recommends, Closes: #991920
+  * set Debian version in dracut-version.sh, Closes: #987320
+  * 90overlay-root/module-setup.sh: fix loading overlayfs kernel module
+
+ -- Thomas Lange <lange@debian.org>  Tue, 24 May 2022 21:29:13 +0200
+
 dracut (056-2) experimental; urgency=low
 
   * Team upload.
