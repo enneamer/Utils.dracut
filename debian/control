@@ -23,8 +23,8 @@ Description: Initramfs generator using udev
 Package: dracut-core
 Architecture: any
 Multi-Arch: foreign
-Recommends: cryptsetup, dmsetup, dmraid, lvm2, mdadm, console-setup, binutils, systemd, pigz
-Depends: cpio, kmod, udev, kpartx, pkg-config, libkmod2, e2fsprogs, ${shlibs:Depends}, ${misc:Depends}
+Recommends: cryptsetup, dmsetup, dmraid, lvm2, mdadm, console-setup, binutils, systemd, pigz, pkg-config
+Depends: cpio, kmod, udev, kpartx, libkmod2, e2fsprogs, ${shlibs:Depends}, ${misc:Depends}
 Description: dracut is an event driven initramfs infrastructure (core tools)
  Unlike existing initramfs's, this is an attempt at having as little as
  possible hard-coded into the initramfs as possible.  The initramfs has
