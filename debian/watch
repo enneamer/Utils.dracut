@@ -1,14 +1,4 @@
-#
-#  Watchfile for rinse.
-#
-#
-#  uscan version number - not the version of the software.
-#
-version=3
-
-
-#
-#  The link to the download location, followed by the regular expression
-# to match release tarballs.
-#
-http://www.kernel.org/pub/linux/utils/boot/dracut/dracut-([\d]+)\.(?:tar\.xz|tar\.bz2|tar\.gz)
+version=4
+opts="filenamemangle=s%(?:.*?)?v?(\d[\d.]*)\.tar\.gz%@PACKAGE@-$1.tar.gz%" \
+    https://github.com/dracutdevs/dracut/tags \
+    (?:.*?/)?([\d]{3})\.tar\.gz debian
