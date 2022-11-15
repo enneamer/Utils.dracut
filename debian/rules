@@ -24,5 +24,5 @@ override_dh_fixperms-indep:
 override_dh_auto_test:
 
 override_dh_clean:
-	dh_clean dracut.pc Makefile.inc dracut-version.sh
+	dh_clean dracut.pc Makefile.inc dracut-version.sh src/skipcpio/skipcpio src/util/util
 	git status|grep modified: | awk '/.asc/ {print $$2}' | xargs -r git checkout
