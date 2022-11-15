@@ -1,6 +1,7 @@
 debian/etc/11-ifcfg.conf etc/dracut.conf.d
 modules.d/00systemd-network-management	usr/lib/dracut/modules.d
 modules.d/01systemd-networkd usr/lib/dracut/modules.d
+modules.d/35connman  usr/lib/dracut/modules.d
 modules.d/35network-manager usr/lib/dracut/modules.d
 modules.d/35network-legacy usr/lib/dracut/modules.d
 modules.d/35network-wicked	usr/lib/dracut/modules.d
