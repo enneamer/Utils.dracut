@@ -35,6 +35,7 @@ install() {
         58-scsi-sg3_symlink.rules \
         59-scsi-sg3_utils.rules \
         60-block.rules \
+        60-cdrom_id.rules \
         60-pcmcia.rules \
         60-persistent-storage.rules \
         61-persistent-storage-edd.rules \
@@ -91,9 +92,6 @@ install() {
         "${udevdir}"/pcmcia-check-broken-cis
 
     inst_multiple -o /etc/pcmcia/config.opts
-
-    [[ -f $dracutsysrootdir/etc/arch-release ]] \
-        && inst_script "$moddir/load-modules.sh" /lib/udev/load-modules.sh
 
     inst_libdir_file "libnss_files*"
 

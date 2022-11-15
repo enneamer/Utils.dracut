@@ -103,26 +103,6 @@ vinfo() {
     done
 }
 
-# replaces all occurrences of 'search' in 'str' with 'replacement'
-#
-# str_replace str search replacement
-#
-# example:
-# str_replace '  one two  three  ' ' ' '_'
-str_replace() {
-    local in="$1"
-    local s="$2"
-    local r="$3"
-    local out=''
-
-    while strstr "${in}" "$s"; do
-        chop="${in%%"$s"*}"
-        out="${out}${chop}$r"
-        in="${in#*"$s"}"
-    done
-    echo "${out}${in}"
-}
-
 killall_proc_mountpoint() {
     local _pid
     local _killed=0
@@ -976,11 +956,6 @@ emergency_shell() {
         _rdshell_name=$2
         action="Shutdown"
         hook="shutdown-emergency"
-        if type plymouth > /dev/null 2>&1; then
-            plymouth --hide-splash
-        elif [ -x /oldroot/bin/plymouth ]; then
-            /oldroot/bin/plymouth --hide-splash
-        fi
         shift 2
     fi
 
@@ -1151,4 +1126,11 @@ remove_hostonly_files() {
             rm -f "$line"
         done < /lib/dracut/hostonly-files
     fi
+}
+
+# parameter: kernel_module [filesystem_name]
+# returns OK if kernel_module is loaded
+# modprobe fails if /lib/modules is not available (--no-kernel use case)
+load_fstype() {
+    strstr "$(cat /proc/filesystems)" "${2:-$1}" || modprobe "$1"
 }

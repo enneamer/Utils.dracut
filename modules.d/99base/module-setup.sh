@@ -32,7 +32,7 @@ install() {
     # add common users in /etc/passwd, it will be used by nfs/ssh currently
     # use password for hostonly images to facilitate secure sulogin in emergency console
     [[ $hostonly ]] && pwshadow='x'
-    grep '^root:' "$initdir/etc/passwd" 2> /dev/null || echo "root:$pwshadow:0:0::/root:/bin/sh" >> "$initdir/etc/passwd"
+    grep '^root:' "$initdir/etc/passwd" > /dev/null 2>&1 || echo "root:$pwshadow:0:0::/root:/bin/sh" >> "$initdir/etc/passwd"
     grep '^nobody:' "$dracutsysrootdir"/etc/passwd >> "$initdir/etc/passwd"
 
     [[ $hostonly ]] && grep '^root:' "$dracutsysrootdir"/etc/shadow >> "$initdir/etc/shadow"
@@ -56,7 +56,6 @@ install() {
     if ! dracut_module_included "systemd"; then
         inst_multiple switch_root || dfatal "Failed to install switch_root"
         inst_hook cmdline 10 "$moddir/parse-root-opts.sh"
-        inst_multiple -o "$systemdutildir"/systemd-timestamp
     fi
 
     if [[ $realinitpath ]]; then

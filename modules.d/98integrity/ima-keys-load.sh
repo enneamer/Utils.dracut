@@ -17,8 +17,7 @@ load_x509_keys() {
         IMAKEYSDIR="/etc/keys/ima"
     fi
 
-    PUBKEY_LIST=$(ls "${NEWROOT}"${IMAKEYSDIR}/*)
-    for PUBKEY in ${PUBKEY_LIST}; do
+    for PUBKEY in "${NEWROOT}${IMAKEYSDIR}"/*; do
         # check for public key's existence
         if [ ! -f "${PUBKEY}" ]; then
             if [ "${RD_DEBUG}" = "yes" ]; then
@@ -27,9 +26,7 @@ load_x509_keys() {
             continue
         fi
 
-        # FIXME: X509ID unused?
-        # shellcheck disable=SC2034
-        if ! X509ID=$(evmctl import "${PUBKEY}" "${KEYRING_ID}"); then
+        if ! evmctl import "${PUBKEY}" "${KEYRING_ID}"; then
             info "integrity: IMA x509 cert not loaded on keyring: ${PUBKEY}"
         fi
     done

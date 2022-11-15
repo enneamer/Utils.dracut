@@ -162,39 +162,43 @@ static size_t dir_len(char const *file)
 static char *convert_abs_rel(const char *from, const char *target)
 {
         /* we use the 4*MAXPATHLEN, which should not overrun */
-        char relative_from[MAXPATHLEN * 4];
-        _cleanup_free_ char *realtarget = NULL;
-        _cleanup_free_ char *target_dir_p = NULL, *realpath_p = NULL;
-        const char *realfrom = from;
+        char buf[MAXPATHLEN * 4];
+        _cleanup_free_ char *realtarget = NULL, *realfrom = NULL, *from_dir_p = NULL;
+        _cleanup_free_ char *target_dir_p = NULL;
         size_t level = 0, fromlevel = 0, targetlevel = 0;
         int l;
         size_t i, rl, dirlen;
 
-        target_dir_p = strdup(target);
-        if (!target_dir_p)
-                return strdup(from);
-
-        dirlen = dir_len(target_dir_p);
-        target_dir_p[dirlen] = '\0';
-        realpath_p = realpath(target_dir_p, NULL);
-
-        if (realpath_p == NULL) {
-                log_warning("convert_abs_rel(): target '%s' directory has no realpath.", target);
-                return strdup(from);
+        dirlen = dir_len(from);
+        from_dir_p = strndup(from, dirlen);
+        if (!from_dir_p)
+                return strdup(from + strlen(destrootdir));
+        if (realpath(from_dir_p, buf) == NULL) {
+                log_warning("convert_abs_rel(): from '%s' directory has no realpath: %m", from);
+                return strdup(from + strlen(destrootdir));
         }
-
         /* dir_len() skips double /'s e.g. //lib64, so we can't skip just one
          * character - need to skip all leading /'s */
-        rl = strlen(target);
-        for (i = dirlen + 1; i < rl; ++i)
-                if (target_dir_p[i] != '/')
-                        break;
-        _asprintf(&realtarget, "%s/%s", realpath_p, &target_dir_p[i]);
+        for (i = dirlen + 1; from[i] == '/'; ++i)
+                ;
+        _asprintf(&realfrom, "%s/%s", buf, from + i);
+
+        dirlen = dir_len(target);
+        target_dir_p = strndup(target, dirlen);
+        if (!target_dir_p)
+                return strdup(from + strlen(destrootdir));
+        if (realpath(target_dir_p, buf) == NULL) {
+                log_warning("convert_abs_rel(): target '%s' directory has no realpath: %m", target);
+                return strdup(from + strlen(destrootdir));
+        }
+
+        for (i = dirlen + 1; target[i] == '/'; ++i)
+                ;
+        _asprintf(&realtarget, "%s/%s", buf, target + i);
 
         /* now calculate the relative path from <from> to <target> and
-           store it in <relative_from>
+           store it in <buf>
          */
-        relative_from[0] = 0;
         rl = 0;
 
         /* count the pathname elements of realtarget */
@@ -212,13 +216,13 @@ static char *convert_abs_rel(const char *from, const char *target)
                 if (realtarget[i] == '/')
                         level++;
 
-        /* add "../" to the relative_from path, until the common pathname is
+        /* add "../" to the buf path, until the common pathname is
            reached */
         for (i = level; i < targetlevel; i++) {
                 if (i != level)
-                        relative_from[rl++] = '/';
-                relative_from[rl++] = '.';
-                relative_from[rl++] = '.';
+                        buf[rl++] = '/';
+                buf[rl++] = '.';
+                buf[rl++] = '.';
         }
 
         /* set l to the next uncommon pathname element in realfrom */
@@ -227,17 +231,17 @@ static char *convert_abs_rel(const char *from, const char *target)
         /* skip next '/' */
         l++;
 
-        /* append the uncommon rest of realfrom to the relative_from path */
+        /* append the uncommon rest of realfrom to the buf path */
         for (i = level; i <= fromlevel; i++) {
                 if (rl)
-                        relative_from[rl++] = '/';
+                        buf[rl++] = '/';
                 while (realfrom[l] && realfrom[l] != '/')
-                        relative_from[rl++] = realfrom[l++];
+                        buf[rl++] = realfrom[l++];
                 l++;
         }
 
-        relative_from[rl] = 0;
-        return strdup(relative_from);
+        buf[rl] = 0;
+        return strdup(buf);
 }
 
 static int ln_r(const char *src, const char *dst)
@@ -325,28 +329,22 @@ static int cp(const char *src, const char *dst)
 
 normal_copy:
         pid = fork();
+        const char *preservation = (geteuid() == 0
+                                    && no_xattr == false) ? "--preserve=mode,xattr,timestamps,ownership" : "--preserve=mode,timestamps,ownership";
         if (pid == 0) {
-                if (geteuid() == 0 && no_xattr == false)
-                        execlp("cp", "cp", "--reflink=auto", "--sparse=auto", "--preserve=mode,xattr,timestamps", "-fL",
-                               src, dst, NULL);
-                else
-                        execlp("cp", "cp", "--reflink=auto", "--sparse=auto", "--preserve=mode,timestamps", "-fL", src,
-                               dst, NULL);
-                _exit(EXIT_FAILURE);
+                execlp("cp", "cp", "--reflink=auto", "--sparse=auto", preservation, "-fL", src, dst, NULL);
+                _exit(errno == ENOENT ? 127 : 126);
         }
 
-        while (waitpid(pid, &ret, 0) < 0) {
+        while (waitpid(pid, &ret, 0) == -1) {
                 if (errno != EINTR) {
-                        ret = -1;
-                        if (geteuid() == 0 && no_xattr == false)
-                                log_error("Failed: cp --reflink=auto --sparse=auto --preserve=mode,xattr,timestamps -fL %s %s",
-                                          src, dst);
-                        else
-                                log_error("Failed: cp --reflink=auto --sparse=auto --preserve=mode,timestamps -fL %s %s",
-                                          src, dst);
-                        break;
+                        log_error("ERROR: waitpid() failed: %m");
+                        return 1;
                 }
         }
+        ret = WIFSIGNALED(ret) ? 128 + WTERMSIG(ret) : WEXITSTATUS(ret);
+        if (ret != 0)
+                log_error("ERROR: 'cp --reflink=auto --sparse=auto %s -fL %s %s' failed with %d", preservation, src, dst, ret);
         log_debug("cp ret = %d", ret);
         return ret;
 }
@@ -389,25 +387,18 @@ static int library_install(const char *src, const char *lib)
         free(p);
         p = strdup(lib);
 
-        pdir = dirname(p);
+        pdir = dirname_malloc(p);
         if (!pdir)
                 return ret;
 
-        pdir = strdup(pdir);
-        ppdir = dirname(pdir);
-        if (!ppdir)
+        ppdir = dirname_malloc(pdir);
+        /* only one parent directory, not HWCAP library */
+        if (!ppdir || streq(ppdir, "/"))
                 return ret;
 
-        ppdir = strdup(ppdir);
-        pppdir = dirname(ppdir);
+        pppdir = dirname_malloc(ppdir);
         if (!pppdir)
                 return ret;
-
-        pppdir = strdup(pppdir);
-        if (!pppdir)
-                return ret;
-
-        strcpy(p, lib);
 
         clibdir = streq(basename(ppdir), "glibc-hwcaps") ? pppdir : ppdir;
         clib = strjoin(clibdir, "/", basename(p), NULL);
@@ -431,19 +422,21 @@ static char *get_real_file(const char *src, bool fullyresolve)
         struct stat sb;
         ssize_t linksz;
         char linktarget[PATH_MAX + 1];
-        _cleanup_free_ char *fullsrcpath;
+        _cleanup_free_ char *fullsrcpath_a = NULL;
+        const char *fullsrcpath;
         _cleanup_free_ char *abspath = NULL;
 
         if (sysrootdirlen) {
                 if (strncmp(src, sysrootdir, sysrootdirlen) == 0) {
-                        fullsrcpath = strdup(src);
+                        fullsrcpath = src;
                 } else {
-                        _asprintf(&fullsrcpath, "%s/%s",
+                        _asprintf(&fullsrcpath_a, "%s/%s",
                                   (sysrootdirlen ? sysrootdir : ""),
                                   (src[0] == '/' ? src + 1 : src));
+                        fullsrcpath = fullsrcpath_a;
                 }
         } else {
-                fullsrcpath = strdup(src);
+                fullsrcpath = src;
         }
 
         log_debug("get_real_file('%s')", fullsrcpath);
@@ -471,15 +464,7 @@ static char *get_real_file(const char *src, bool fullyresolve)
         if (linktarget[0] == '/') {
                 _asprintf(&abspath, "%s%s", (sysrootdirlen ? sysrootdir : ""), linktarget);
         } else {
-                _cleanup_free_ char *fullsrcdir = strdup(fullsrcpath);
-
-                if (!fullsrcdir) {
-                        log_error("Out of memory!");
-                        exit(EXIT_FAILURE);
-                }
-
-                fullsrcdir[dir_len(fullsrcdir)] = '\0';
-                _asprintf(&abspath, "%s/%s", fullsrcdir, linktarget);
+                _asprintf(&abspath, "%.*s/%s", (int)dir_len(fullsrcpath), fullsrcpath, linktarget);
         }
 
         if (fullyresolve) {
@@ -500,12 +485,10 @@ static char *get_real_file(const char *src, bool fullyresolve)
 
 static int resolve_deps(const char *src)
 {
-        int ret = 0;
+        int ret = 0, err;
 
         _cleanup_free_ char *buf = NULL;
-        size_t linesize = LINE_MAX;
-        _cleanup_pclose_ FILE *fptr = NULL;
-        _cleanup_free_ char *cmd = NULL;
+        size_t linesize = LINE_MAX + 1;
         _cleanup_free_ char *fullsrcpath = NULL;
 
         fullsrcpath = get_real_file(src, true);
@@ -513,7 +496,7 @@ static int resolve_deps(const char *src)
         if (!fullsrcpath)
                 return 0;
 
-        buf = malloc0(LINE_MAX);
+        buf = malloc(linesize);
         if (buf == NULL)
                 return -errno;
 
@@ -523,11 +506,11 @@ static int resolve_deps(const char *src)
                 if (fd < 0)
                         return -errno;
 
-                ret = read(fd, buf, LINE_MAX);
+                ret = read(fd, buf, linesize - 1);
                 if (ret == -1)
                         return -errno;
 
-                buf[LINE_MAX - 1] = '\0';
+                buf[ret] = '\0';
                 if (buf[0] == '#' && buf[1] == '!') {
                         /* we have a shebang */
                         char *p, *q;
@@ -542,25 +525,28 @@ static int resolve_deps(const char *src)
                 }
         }
 
-        /* run ldd */
-        _asprintf(&cmd, "%s %s 2>&1", ldd, fullsrcpath);
-
-        log_debug("%s", cmd);
-
-        ret = 0;
-
-        fptr = popen(cmd, "r");
-        if (fptr == NULL) {
-                log_error("Error '%s' initiating pipe stream from '%s'", strerror(errno), cmd);
+        int fds[2];
+        FILE *fptr;
+        if (pipe2(fds, O_CLOEXEC) == -1 || (fptr = fdopen(fds[0], "r")) == NULL) {
+                log_error("ERROR: pipe stream initialization for '%s' failed: %m", ldd);
                 exit(EXIT_FAILURE);
         }
 
-        while (!feof(fptr)) {
-                char *p;
+        log_debug("%s %s", ldd, fullsrcpath);
+        pid_t ldd_pid;
+        if ((ldd_pid = fork()) == 0) {
+                dup2(fds[1], 1);
+                dup2(fds[1], 2);
+                putenv("LC_ALL=C");
+                execlp(ldd, ldd, fullsrcpath, (char *)NULL);
+                _exit(errno == ENOENT ? 127 : 126);
+        }
+        close(fds[1]);
 
-                memset(buf, 0, LINE_MAX);
-                if (getline(&buf, &linesize, fptr) <= 0)
-                        continue;
+        ret = 0;
+
+        while (getline(&buf, &linesize, fptr) >= 0) {
+                char *p;
 
                 log_debug("ldd: '%s'", buf);
 
@@ -571,7 +557,7 @@ static int resolve_deps(const char *src)
                 }
 
                 /* errors from cross-compiler-ldd */
-                if (strstr(buf, "unable to find sysroot") || strstr(buf, "command not found")) {
+                if (strstr(buf, "unable to find sysroot")) {
                         log_error("%s", buf);
                         ret += 1;
                         break;
@@ -623,7 +609,21 @@ static int resolve_deps(const char *src)
                 }
         }
 
-        return ret;
+        fclose(fptr);
+        while (waitpid(ldd_pid, &err, 0) == -1) {
+                if (errno != EINTR) {
+                        log_error("ERROR: waitpid() failed: %m");
+                        return 1;
+                }
+        }
+        err = WIFSIGNALED(err) ? 128 + WTERMSIG(err) : WEXITSTATUS(err);
+        /* ldd has error conditions we largely don't care about ("not a dynamic executable", &c.):
+           only error out on hard errors (ENOENT, ENOEXEC, signals) */
+        if (err >= 126) {
+                log_error("ERROR: '%s %s' failed with %d", ldd, fullsrcpath, err);
+                return err;
+        } else
+                return ret;
 }
 
 /* Install ".<filename>.hmac" file for FIPS self-checks */
@@ -820,12 +820,11 @@ static int dracut_install(const char *orig_src, const char *orig_dst, bool isdir
         } else {
 
                 /* check destination directory */
-                fulldstdir = strdup(fulldstpath);
+                fulldstdir = strndup(fulldstpath, dir_len(fulldstpath));
                 if (!fulldstdir) {
                         log_error("Out of memory!");
                         return 1;
                 }
-                fulldstdir[dir_len(fulldstdir)] = '\0';
 
                 ret = stat(fulldstdir, &db);
 
@@ -838,11 +837,10 @@ static int dracut_install(const char *orig_src, const char *orig_dst, bool isdir
                         }
                         /* create destination directory */
                         log_debug("dest dir '%s' does not exist", fulldstdir);
-                        dname = strdup(dst);
+
+                        dname = strndup(dst, dir_len(dst));
                         if (!dname)
                                 return 1;
-
-                        dname[dir_len(dname)] = '\0';
                         ret = dracut_install(dname, dname, true, false, true);
 
                         if (ret != 0) {
@@ -983,9 +981,12 @@ static void usage(int status)
                "\n"
                "  --module,-m       Install kernel modules, instead of files\n"
                "  --kerneldir       Specify the kernel module directory\n"
-               "                     (default: /lib/modules/`uname -r`)\n"
+               "                     (default: /lib/modules/$(uname -r))\n"
                "  --firmwaredirs    Specify the firmware directory search path with : separation\n"
-               "                     (default: DRACUT_FIRMWARE_PATH env var, /lib/firmware if not set)\n"
+               "                     (default: $DRACUT_FIRMWARE_PATH, otherwise kernel-compatible\n"
+               "                      $(</sys/module/firmware_class/parameters/path),\n"
+               "                      /lib/firmware/updates/$(uname -r), /lib/firmware/updates\n"
+               "                      /lib/firmware/$(uname -r), /lib/firmware)\n"
                "  --silent          Don't display error messages for kernel module install\n"
                "  --modalias        Only generate module list from /sys/devices modalias list\n"
                "  -o --optional     If kernel module does not exist, do not fail\n"
@@ -1149,10 +1150,10 @@ static int parse_argv(int argc, char *argv[])
                 log_set_max_level(arg_loglevel);
         }
 
+        struct utsname buf = {0};
         if (!kerneldir) {
-                struct utsname buf;
                 uname(&buf);
-                _asprintf(&kerneldir, "%s%s", "/lib/modules/", buf.release);
+                _asprintf(&kerneldir, "/lib/modules/%s", buf.release);
         }
 
         if (arg_modalias) {
@@ -1161,22 +1162,43 @@ static int parse_argv(int argc, char *argv[])
 
         if (arg_module) {
                 if (!firmwaredirs) {
-                        char *path = NULL;
-
-                        path = getenv("DRACUT_FIRMWARE_PATH");
+                        char *path = getenv("DRACUT_FIRMWARE_PATH");
 
                         if (path) {
                                 log_debug("DRACUT_FIRMWARE_PATH=%s", path);
                                 firmwaredirs = strv_split(path, ":");
                         } else {
-                                firmwaredirs = strv_new("/lib/firmware", NULL);
+                                if (!*buf.release)
+                                        uname(&buf);
+
+                                char fw_path_para[PATH_MAX + 1] = "";
+                                int path = open("/sys/module/firmware_class/parameters/path", O_RDONLY | O_CLOEXEC);
+                                if (path != -1) {
+                                        ssize_t rd = read(path, fw_path_para, PATH_MAX);
+                                        if (rd != -1)
+                                                fw_path_para[rd - 1] = '\0';
+                                        close(path);
+                                }
+                                char uk[22 + sizeof(buf.release)], fk[14 + sizeof(buf.release)];
+                                sprintf(uk, "/lib/firmware/updates/%s", buf.release);
+                                sprintf(fk, "/lib/firmware/%s", buf.release);
+                                firmwaredirs = strv_new(STRV_IFNOTNULL(*fw_path_para ? fw_path_para : NULL),
+                                                        uk,
+                                                        "/lib/firmware/updates",
+                                                        fk,
+                                                        "/lib/firmware",
+                                                        NULL);
                         }
                 }
         }
 
         if (!optind || optind == argc) {
-                log_error("No SOURCE argument given");
-                usage(EXIT_FAILURE);
+                if (!arg_optional) {
+                        log_error("No SOURCE argument given");
+                        usage(EXIT_FAILURE);
+                } else {
+                        exit(EXIT_SUCCESS);
+                }
         }
 
         return 1;
@@ -1347,18 +1369,20 @@ static int install_all(int argc, char **argv)
 
 static int install_firmware_fullpath(const char *fwpath)
 {
-        const char *fw;
-        _cleanup_free_ char *fwpath_xz = NULL;
-        fw = fwpath;
+        const char *fw = fwpath;
+        _cleanup_free_ char *fwpath_compressed = NULL;
         struct stat sb;
         int ret;
         if (stat(fwpath, &sb) != 0) {
-                _asprintf(&fwpath_xz, "%s.xz", fwpath);
-                if (stat(fwpath_xz, &sb) != 0) {
-                        log_debug("stat(%s) != 0", fwpath);
-                        return 1;
+                _asprintf(&fwpath_compressed, "%s.zst", fwpath);
+                if (access(fwpath_compressed, F_OK) != 0) {
+                        strcpy(fwpath_compressed + strlen(fwpath) + 1, "xz");
+                        if (access(fwpath_compressed, F_OK) != 0) {
+                                log_debug("stat(%s) != 0", fwpath);
+                                return 1;
+                        }
                 }
-                fw = fwpath_xz;
+                fw = fwpath_compressed;
         }
         ret = dracut_install(fw, fw, false, false, true);
         if (ret == 0) {
@@ -1496,7 +1520,7 @@ static int install_dependent_modules(struct kmod_list *modlist)
                 if (check_hashmap(items_failed, path))
                         return -1;
 
-                if (check_hashmap(items, path)) {
+                if (check_hashmap(items, &path[kerneldirlen])) {
                         continue;
                 }
 

@@ -21,9 +21,6 @@ modules:
 bash:
   - modules.d/00bash/*
 
-bootchart:
-  - modules.d/00bootchart/*
-
 dash:
   - modules.d/00dash/*
 
@@ -87,9 +84,6 @@ url-lib:
 drm:
   - modules.d/50drm/*
 
-gensplash:
-  - modules.d/50gensplash/*
-
 plymouth:
   - modules.d/50plymouth/*
 
@@ -144,6 +138,9 @@ multipath:
 nvdimm:
   - modules.d/90nvdimm/*
 
+overlayfs:
+  - modules.d/90overlayfs/*
+
 ppcmac:
   - modules.d/90ppcmac/*
 
@@ -152,9 +149,6 @@ qemu:
 
 qemu-net:
   - modules.d/90qemu-net/*
-
-stratis:
-  - modules.d/90stratis/*
 
 crypt-gpg:
   - modules.d/91crypt-gpg/*
@@ -228,6 +222,9 @@ udev-rules:
 virtfs:
   - modules.d/95virtfs/*
 
+virtiofs:
+  - modules.d/95virtiofs/*
+
 zfcp:
   - modules.d/95zfcp/*
 
@@ -291,3 +288,5 @@ uefi-lib:
 test:
   - test/*
   - test/**/*
+  - modules.d/80test*
+  - modules.d/80test*/*

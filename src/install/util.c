@@ -24,17 +24,12 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <sys/syscall.h>
+#include <libgen.h>
 
 #include "util.h"
 
-#if __GLIBC_PREREQ(2, 30) == 0
-#include <sys/syscall.h>
-#ifndef SYS_gettid
-#error "SYS_gettid unavailable on this system"
-#endif
-
 #define gettid()    ((pid_t) syscall(SYS_gettid))
-#endif /*__GLIBC_PREREQ */
 
 size_t page_size(void)
 {
@@ -554,4 +549,26 @@ int dracut_asprintf(char **restrict strp, const char *restrict fmt, ...)
         va_end(args);
 
         return ret;
+}
+
+char *dirname_malloc(const char *path)
+{
+        char *d, *dir, *dir2;
+
+        assert(path);
+
+        d = strdup(path);
+        if (!d)
+                return NULL;
+
+        dir = dirname(d);
+        assert(dir);
+
+        if (dir == d)
+                return d;
+
+        dir2 = strdup(dir);
+        free(d);
+
+        return dir2;
 }

@@ -56,7 +56,7 @@ add_url_handler() {
 
 export CURL_HOME="/run/initramfs/url-lib"
 mkdir -p $CURL_HOME
-curl_args="--globoff --location --retry 3 --fail --show-error"
+curl_args="--globoff --location --retry 3 --retry-connrefused --fail --show-error"
 getargbool 0 rd.noverifyssl && curl_args="$curl_args --insecure"
 
 proxy=$(getarg proxy=)
@@ -67,7 +67,7 @@ curl_fetch_url() {
     echo "$url" > /proc/self/fd/0
     if [ -n "$outloc" ]; then
         # shellcheck disable=SC2086
-        curl $curl_args --output - -- "$url" > "$outloc" || return $?
+        curl $curl_args --output "$outloc" -- "$url" || return $?
     else
         local outdir
         outdir="$(mkuniqdir /tmp curl_fetch_url)"
@@ -101,7 +101,7 @@ ctorrent_fetch_url() {
     echo "$url" > /proc/self/fd/0
     if [ -n "$outloc" ]; then
         # shellcheck disable=SC2086
-        curl $curl_args --output - -- "$url" > "$torrent_outloc" || return $?
+        curl $curl_args --output "$torrent_outloc" -- "$url" || return $?
     else
         local outdir
         outdir="$(mkuniqdir /tmp torrent_fetch_url)"

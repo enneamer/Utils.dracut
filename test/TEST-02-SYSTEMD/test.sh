@@ -35,17 +35,14 @@ test_setup() {
             cd "$initdir" || exit
             mkdir -p -- dev sys proc etc var/run tmp
             mkdir -p root usr/bin usr/lib usr/lib64 usr/sbin
-            mkdir -p -- var/lib/nfs/rpc_pipefs
         )
-        inst_multiple sh df free ls shutdown poweroff stty cat ps ln ip \
-            mount dmesg dhclient mkdir cp ping dhclient \
+        inst_multiple sh df free ls shutdown poweroff stty cat ps ln \
+            mount dmesg mkdir cp \
             umount strace less setsid systemd-analyze dd sync
         for _terminfodir in /lib/terminfo /etc/terminfo /usr/share/terminfo; do
             [ -f ${_terminfodir}/l/linux ] && break
         done
         inst_multiple -o ${_terminfodir}/l/linux
-        inst "$basedir/modules.d/35network-legacy/dhclient-script.sh" "/sbin/dhclient-script"
-        inst "$basedir/modules.d/35network-legacy/ifup.sh" "/sbin/ifup"
 
         inst_simple "${basedir}/modules.d/99base/dracut-lib.sh" "/lib/dracut-lib.sh"
         inst_simple "${basedir}/modules.d/99base/dracut-dev-lib.sh" "/lib/dracut-dev-lib.sh"
@@ -77,7 +74,7 @@ test_setup() {
     # We do it this way so that we do not risk trashing the host mdraid
     # devices, volume groups, encrypted partitions, etc.
     "$basedir"/dracut.sh -l -i "$TESTDIR"/overlay / \
-        -m "dash udev-rules base rootfs-block fs-lib kernel-modules qemu" \
+        -m "dash rootfs-block kernel-modules qemu" \
         -d "piix ide-gd_mod ata_piix ext3 sd_mod" \
         --nomdadmconf \
         --no-hostonly-cmdline -N \
@@ -105,9 +102,15 @@ test_setup() {
         export initdir=$TESTDIR/overlay
         # shellcheck disable=SC1090
         . "$basedir"/dracut-init.sh
-        inst_multiple poweroff shutdown dd
+        inst_multiple poweroff shutdown dd true
+
         inst_hook shutdown-emergency 000 ./hard-off.sh
+
+        # systemd-analyze.sh calls man indirectly
+        # make the man command succeed always
+        inst "$(find_binary true)" "/usr/bin/man"
         inst_hook pre-pivot 000 ./systemd-analyze.sh
+
         inst_hook emergency 000 ./hard-off.sh
     )
     "$basedir"/dracut.sh -l -i "$TESTDIR"/overlay / \
@@ -116,8 +119,6 @@ test_setup() {
         -d "piix ide-gd_mod ata_piix ext3 sd_mod" \
         --no-hostonly-cmdline -N \
         -f "$TESTDIR"/initramfs.testing "$KVERSION" || return 1
-
-    #       -o "plymouth network md dmraid multipath fips caps crypt btrfs resume dmsquash-live dm"
 }
 
 test_cleanup() {

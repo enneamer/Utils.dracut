@@ -20,7 +20,7 @@ check() {
 depends() {
 
     # This module has external dependency on other module(s).
-    echo dbus systemd-timedated
+    echo dbus systemd-sysusers systemd-timedated
     # Return 0 to include the dependent module(s) in the initramfs.
     return 0
 
@@ -35,7 +35,7 @@ install() {
     inst_multiple -o \
         "$dbussystem"/org.freedesktop.timesync1.conf \
         "$dbussystemservices"/org.freedesktop.timesync1.service \
-        "$systemdutildir/ntp-units.d/*.list" \
+        "$systemdntpunits/*.list" \
         "$systemdutildir"/systemd-timesyncd \
         "$systemdutildir"/systemd-time-wait-sync \
         "$systemdutildir/timesyncd.conf.d/*.conf" \
@@ -55,7 +55,7 @@ install() {
     # Install the hosts local user configurations if enabled.
     if [[ $hostonly ]]; then
         inst_multiple -H -o \
-            "$systemdutilconfdir/ntp-units.d/*.list" \
+            "$systemdntpunitsconfdir/*.list" \
             "$systemdutilconfdir"/timesyncd.conf \
             "$systemdutilconfdir/timesyncd.conf.d/*.conf" \
             "$systemdsystemconfdir"/systemd-timesyncd.service \

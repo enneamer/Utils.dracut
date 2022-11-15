@@ -45,10 +45,12 @@ RUN dnf -y install --setopt=install_weak_deps=False \
     dbus-daemon \
     kbd \
     NetworkManager \
-    python3-imgcreate \
+    squashfs-tools \
     which \
     ShellCheck \
     shfmt \
+    parted \
+    ntfsprogs \
     && dnf -y update && dnf clean all
 
 # Set default command
