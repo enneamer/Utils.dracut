@@ -1,6 +1,6 @@
 --- a/modules.d/00systemd/module-setup.sh
 +++ b/modules.d/00systemd/module-setup.sh
-@@ -201,6 +201,8 @@
+@@ -206,6 +206,8 @@
          grep '^adm:' "$dracutsysrootdir"/etc/passwd 2> /dev/null
          # we don't use systemd-networkd, but the user is in systemd.conf tmpfiles snippet
          grep '^systemd-network:' "$dracutsysrootdir"/etc/passwd 2> /dev/null
@@ -9,7 +9,7 @@
      } >> "$initdir/etc/passwd"
  
      {
-@@ -211,6 +213,8 @@
+@@ -216,6 +218,8 @@
          grep '^root:' "$dracutsysrootdir"/etc/group 2> /dev/null
          # we don't use systemd-networkd, but the user is in systemd.conf tmpfiles snippet
          grep '^systemd-network:' "$dracutsysrootdir"/etc/group 2> /dev/null

@@ -1,19 +1,11 @@
 --- a/Makefile
 +++ b/Makefile
-@@ -1,5 +1,7 @@
- -include dracut-version.sh
+@@ -9,6 +9,8 @@
+ DRACUT_FULL_VERSION = $(DRACUT_VERSION)
+ endif
  
-+DEB_VERSION = $(shell dpkg-parsechangelog -SVersion)
++DRACUT_FULL_VERSION = $(shell dpkg-parsechangelog -SVersion)
 +
- DRACUT_MAIN_VERSION ?= $(shell env GIT_CEILING_DIRECTORIES=$(CWD)/.. git describe --abbrev=0 --tags --always 2>/dev/null || :)
- ifeq ($(DRACUT_MAIN_VERSION),)
- DRACUT_MAIN_VERSION = $(DRACUT_VERSION)
-@@ -221,7 +223,7 @@
- 
- dracut-version.sh:
- 	@rm -f dracut-version.sh
--	@printf "#!/bin/sh\n# shellcheck disable=SC2034\nDRACUT_VERSION=%s\n" "$(DRACUT_FULL_VERSION)" > dracut-version.sh
-+	@printf "#!/bin/sh\n# shellcheck disable=SC2034\nDRACUT_VERSION=%s\n" "$(DEB_VERSION)" > dracut-version.sh
- 
- clean:
- 	$(RM) *~
+ HAVE_SHELLCHECK ?= $(shell which shellcheck >/dev/null 2>&1 && echo yes)
+ HAVE_SHFMT ?= $(shell which shfmt >/dev/null  2>&1 && echo yes)
+ HAVE_RPMBUILD ?= $(shell which rpmbuild >/dev/null  2>&1 && echo yes)
