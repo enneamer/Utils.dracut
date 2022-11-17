@@ -1,3 +1,12 @@
+dracut (057+157-1) unstable; urgency=low
+
+  * new upstream: Closes: #1023239, #1015922, #1016051, #1017411
+  * update initrd-not-initramfs.patch Closes: #1021229
+  * add patch for missing libz, Closes: #1016727
+  * add patch for Debian path in 35network-manager, Closes: #1016741
+
+ -- Thomas Lange <lange@debian.org>  Thu, 17 Nov 2022 21:48:24 +0100
+
 dracut (056-3) unstable; urgency=low
 
   * new upstream, Closes: #991918
