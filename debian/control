@@ -70,11 +70,13 @@ Description: dracut is an event driven initramfs infrastructure (live image modu
 Package: dracut-config-generic
 Architecture: all
 Depends: dracut-core
+Multi-Arch: foreign
 Description: dracut is an event driven initramfs infrastructure
  This is the dracut configuration to turn off hostonly image generation
 
 Package: dracut-config-rescue
 Architecture: all
 Depends: dracut-core
+Multi-Arch: foreign
 Description: dracut is an event driven initramfs infrastructure
  This is the dracut configuration to turn on rescue image generation
