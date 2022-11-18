@@ -1,3 +1,9 @@
+dracut (057+157-2) unstable; urgency=low
+
+  * remove duplicate virtfs module, Closes: #1024390
+
+ -- Thomas Lange <lange@debian.org>  Fri, 18 Nov 2022 20:54:29 +0100
+
 dracut (057+157-1) unstable; urgency=low
 
   * new upstream: Closes: #1023239, #1015922, #1016051, #1017411
