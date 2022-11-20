@@ -1,3 +1,9 @@
+dracut (057+157-3) unstable; urgency=low
+
+  * control: add breaks and replaces, Closes: #1024435
+
+ -- Thomas Lange <lange@debian.org>  Sun, 20 Nov 2022 08:56:26 +0100
+
 dracut (057+157-2) unstable; urgency=low
 
   * remove duplicate virtfs module, Closes: #1024390
