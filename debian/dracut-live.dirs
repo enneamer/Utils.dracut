@@ -1,3 +1,4 @@
 usr/lib/dracut/modules.d/99img-lib
 usr/lib/dracut/modules.d/90dmsquash-live
 usr/lib/dracut/modules.d/90livenet
+usr/lib/dracut/modules.d/90overlayfs

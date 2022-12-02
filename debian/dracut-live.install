@@ -3,3 +3,4 @@ modules.d/90dmsquash-live	usr/lib/dracut/modules.d
 modules.d/90dmsquash-live-autooverlay	usr/lib/dracut/modules.d
 modules.d/90dmsquash-live-ntfs	usr/lib/dracut/modules.d
 modules.d/90livenet		usr/lib/dracut/modules.d
+modules.d/90overlayfs   usr/lib/dracut/modules.d
