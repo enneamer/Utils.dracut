@@ -7,5 +7,4 @@ microcode
 plymouth
 multipath
 initrd-not-initramfs.patch
-dev-shm-mount
 systemd-users
