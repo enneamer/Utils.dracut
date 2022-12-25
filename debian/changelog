@@ -1,3 +1,16 @@
+dracut (059-1) unstable; urgency=low
+
+  * new upstream version
+  * control: new homepage, new standards version
+  * remove 10-debian.conf, build generic initrd by default
+  * rules: run script explicitly as shell, Closes: #1025378
+  * nm-path: fix more paths, Closes: #1016741
+  * patches/udevsettle: fix broken network in kvm in some cases
+  * remove dev-shm patch which is not needed, Closes: #1025996
+  * remove systemd-users patch, Closes: #1025951
+
+ -- Thomas Lange <lange@debian.org>  Sun, 25 Dec 2022 17:09:02 +0100
+
 dracut (057+157-4) unstable; urgency=low
 
   * add missing module 90overlayfs
