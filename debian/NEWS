@@ -1,3 +1,9 @@
+dracut (059-1) unstable; urgency=low
+
+  - build generic initrd by default as upstream does it
+
+ -- Thomas Lange <lange@debian.org>  Sun, 25 Dec 2022 13:19:55 +0100
+
 dracut (050-1) unstable; urgency=low
 
   - dracut has two new packages:
