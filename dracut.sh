@@ -198,8 +198,9 @@ Creates initial ramdisk images for preloading modules
                          necessary network drivers.
   --persistent-policy [POLICY]
                         Use [POLICY] to address disks and partitions.
-                         POLICY can be any directory name found in /dev/disk.
-                         E.g. "by-uuid", "by-label"
+                         POLICY can be any directory name found in /dev/disk
+                         (e.g. "by-uuid", "by-label"), or "mapper" to use
+                         /dev/mapper device names (default).
   --fstab               Use /etc/fstab to determine the root device.
   --add-fstab [FILE]    Add file to the initramfs fstab.
   --mount "[DEV] [MP] [FSTYPE] [FSOPTS]"
@@ -1031,6 +1032,7 @@ stdloglvl=$((stdloglvl + verbosity_mod_l))
 ((stdloglvl < 0)) && stdloglvl=0
 
 [[ $drivers_dir_l ]] && drivers_dir=$drivers_dir_l
+drivers_dir="${drivers_dir%%+(/)}"
 [[ $do_strip_l ]] && do_strip=$do_strip_l
 [[ $do_strip ]] || do_strip=yes
 [[ $aggressive_strip_l ]] && aggressive_strip=$aggressive_strip_l
@@ -1204,20 +1206,25 @@ esac
 
 [[ $reproducible == yes ]] && DRACUT_REPRODUCIBLE=1
 
-case "${drivers_dir}" in
-    '' | *lib/modules/${kernel} | *lib/modules/${kernel}/) ;;
-    *)
-        [[ "$DRACUT_KMODDIR_OVERRIDE" ]] || {
-            printf "%s\n" 'dracut: -k/--kmoddir path must contain "lib/modules" as a parent of your kernel module directory,'
-            printf "%s\n" "dracut: or modules may not be placed in the correct location inside the initramfs."
-            printf "%s\n" "dracut: was given: ${drivers_dir}"
-            printf "%s\n" "dracut: expected: $(dirname "${drivers_dir}")/lib/modules/${kernel}"
-            printf "%s\n" "dracut: Please move your modules into the correct directory structure and pass the new location,"
-            printf "%s\n" "dracut: or set DRACUT_KMODDIR_OVERRIDE=1 to ignore this check."
-            exit 1
-        }
-        ;;
-esac
+if [[ -z $DRACUT_KMODDIR_OVERRIDE && -n $drivers_dir ]]; then
+    drivers_basename="${drivers_dir##*/}"
+    if [[ -n $drivers_basename && $drivers_basename != "$kernel" ]]; then
+        printf "%s\n" "dracut: The provided directory where to look for kernel modules ($drivers_basename)" >&2
+        printf "%s\n" "dracut: does not match the kernel version set for the initramfs ($kernel)." >&2
+        printf "%s\n" "dracut: Set DRACUT_KMODDIR_OVERRIDE=1 to ignore this check." >&2
+        exit 1
+    fi
+    drivers_dirname="${drivers_dir%/*}/"
+    if [[ ! $drivers_dirname =~ .*/lib/modules/$ ]]; then
+        printf "%s\n" "dracut: drivers_dir path ${drivers_dir_l:+"set via -k/--kmoddir "}must contain \"/lib/modules/\" as a parent of your kernel module directory," >&2
+        printf "%s\n" "dracut: or modules may not be placed in the correct location inside the initramfs." >&2
+        printf "%s\n" "dracut: was given: ${drivers_dir}" >&2
+        printf "%s\n" "dracut: expected: ${drivers_dirname}lib/modules/${kernel}" >&2
+        printf "%s\n" "dracut: Please move your modules into the correct directory structure and pass the new location," >&2
+        printf "%s\n" "dracut: or set DRACUT_KMODDIR_OVERRIDE=1 to ignore this check." >&2
+        exit 1
+    fi
+fi
 
 # shellcheck disable=SC2155
 readonly TMPDIR="$(realpath -e "$tmpdir")"
@@ -1293,6 +1300,13 @@ else
     printf "%s\n" "dracut: Are you running from a git checkout?" >&2
     printf "%s\n" "dracut: Try passing -l as an argument to $dracut_cmd" >&2
     exit 1
+fi
+
+if [[ $persistent_policy == "mapper" ]]; then
+    unset persistent_policy
+elif [[ -n $persistent_policy && ! -d "/dev/disk/${persistent_policy}" ]]; then
+    dwarn "Invalid persistent policy, your system does not have a /dev/disk/${persistent_policy} directory."
+    unset persistent_policy
 fi
 
 if [[ $enhanced_cpio == "yes" ]]; then
@@ -1434,7 +1448,7 @@ if [[ ! $print_cmdline ]]; then
         fi
         unset EFI_MACHINE_TYPE_NAME
         EFI_SECTION_VMA_INITRD=0x3000000
-        case $(uname -m) in
+        case "${DRACUT_ARCH:-$(uname -m)}" in
             x86_64)
                 EFI_MACHINE_TYPE_NAME=x64
                 ;;
@@ -1447,7 +1461,7 @@ if [[ ! $print_cmdline ]]; then
                 EFI_SECTION_VMA_INITRD=0x4000000
                 ;;
             *)
-                dfatal "Architecture '$(uname -m)' not supported to create a UEFI executable"
+                dfatal "Architecture '${DRACUT_ARCH:-$(uname -m)}' not supported to create a UEFI executable"
                 exit 1
                 ;;
         esac
@@ -1494,7 +1508,7 @@ if [[ $early_microcode == yes ]]; then
             && unset early_microcode
     fi
     # Do not complain on non-x86 architectures as it makes no sense
-    case $(uname -m) in
+    case "${DRACUT_ARCH:-$(uname -m)}" in
         x86_64 | i?86)
             [[ $early_microcode != yes ]] \
                 && dwarn "Disabling early microcode, because kernel does not support it. CONFIG_MICROCODE_[AMD|INTEL]!=y"
@@ -2010,10 +2024,11 @@ else
     done
 fi
 
+mkdir -p "${initdir}"/lib/dracut
+
 if [[ $kernel_only != yes ]]; then
     mkdir -p "${initdir}/etc/cmdline.d"
-    # shellcheck disable=SC2174
-    mkdir -m 0755 -p "${initdir}"/lib "${initdir}"/lib/dracut "${initdir}"/lib/dracut/hooks
+    mkdir -m 0755 "${initdir}"/lib/dracut/hooks
     # shellcheck disable=SC2154
     for _d in $hookdirs; do
         # shellcheck disable=SC2174
@@ -2071,7 +2086,6 @@ done
 unset moddir
 
 for i in $modules_loaded; do
-    mkdir -p "$initdir"/lib/dracut
     printf "%s\n" "$i" >> "$initdir"/lib/dracut/modules.txt
 done
 
@@ -2168,8 +2182,9 @@ if [[ $kernel_only != yes ]]; then
 
     if [[ $DRACUT_RESOLVE_LAZY ]] && [[ $DRACUT_INSTALL ]]; then
         dinfo "*** Resolving executable dependencies ***"
+        # shellcheck disable=SC2086
         find "$initdir" -type f -perm /0111 -not -path '*.ko' -print0 \
-            | xargs -r -0 "$DRACUT_INSTALL" ${initdir:+-D "$initdir"} ${dracutsysrootdir:+-r "$dracutsysrootdir"} -R ${DRACUT_FIPS_MODE:+-f} --
+            | xargs -r -0 $DRACUT_INSTALL ${initdir:+-D "$initdir"} ${dracutsysrootdir:+-r "$dracutsysrootdir"} -R ${DRACUT_FIPS_MODE:+-f} --
         dinfo "*** Resolving executable dependencies done ***"
     fi
 
