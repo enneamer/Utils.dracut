@@ -11,7 +11,7 @@
  device modules (such as IDE, SCSI or RAID) which are needed to access the root
 --- a/dracut.sh
 +++ b/dracut.sh
-@@ -1140,7 +1140,7 @@
+@@ -1142,7 +1142,7 @@
          elif [[ -f "$dracutsysrootdir"/lib/modules/${kernel}/initrd ]]; then
              outfile="$dracutsysrootdir/lib/modules/${kernel}/initrd"
          elif [[ -e $dracutsysrootdir/boot/vmlinuz-${kernel} ]]; then
@@ -20,7 +20,7 @@
          elif [[ -z $dracutsysrootdir ]] \
              && [[ $MACHINE_ID ]] \
              && mountpoint -q /efi; then
-@@ -1150,7 +1150,7 @@
+@@ -1152,7 +1152,7 @@
              && mountpoint -q /boot/efi; then
              outfile="/boot/efi/${MACHINE_ID}/${kernel}/initrd"
          else
@@ -53,10 +53,10 @@
  -------
 --- a/lsinitrd.sh
 +++ b/lsinitrd.sh
-@@ -131,8 +131,8 @@
-         image="/boot/efi/${MACHINE_ID}/${KERNEL_VERSION}/initrd"
-     elif [[ -f /lib/modules/${KERNEL_VERSION}/initrd ]]; then
+@@ -133,8 +133,8 @@
          image="/lib/modules/${KERNEL_VERSION}/initrd"
+     elif [[ -f /lib/modules/${KERNEL_VERSION}/initramfs.img ]]; then
+         image="/lib/modules/${KERNEL_VERSION}/initramfs.img"
 -    elif [[ -f /boot/initramfs-${KERNEL_VERSION}.img ]]; then
 -        image="/boot/initramfs-${KERNEL_VERSION}.img"
 +    elif [[ -f /boot/initrd-${KERNEL_VERSION} ]]; then
