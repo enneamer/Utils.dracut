@@ -6,5 +6,4 @@ makefile
 vconsole
 microcode
 plymouth
-multipath
 initrd-not-initramfs.patch
