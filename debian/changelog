@@ -1,3 +1,9 @@
+dracut (059-3) unstable; urgency=low
+
+  * control: add breaks + replaces, Closes: #1028303
+
+ -- Thomas Lange <lange@debian.org>  Mon, 09 Jan 2023 20:56:29 +0100
+
 dracut (059-2) unstable; urgency=low
 
   * add patches from Laszlo Gombos
