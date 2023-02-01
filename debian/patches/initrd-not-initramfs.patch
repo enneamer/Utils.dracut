@@ -16,7 +16,7 @@
              outfile="$dracutsysrootdir/lib/modules/${kernel}/initrd"
          elif [[ -e $dracutsysrootdir/boot/vmlinuz-${kernel} ]]; then
 -            outfile="$dracutsysrootdir/boot/initramfs-${kernel}.img"
-+            outfile="$dracutsysrootdir/boot/initrd-${kernel}"
++            outfile="$dracutsysrootdir/boot/initrd.img-${kernel}"
          elif [[ -z $dracutsysrootdir ]] \
              && [[ $MACHINE_ID ]] \
              && mountpoint -q /efi; then
@@ -25,7 +25,7 @@
              outfile="/boot/efi/${MACHINE_ID}/${kernel}/initrd"
          else
 -            outfile="$dracutsysrootdir/boot/initramfs-${kernel}.img"
-+            outfile="$dracutsysrootdir/boot/initrd-${kernel}"
++            outfile="$dracutsysrootdir/boot/initrd.img-${kernel}"
          fi
      fi
  fi
@@ -36,7 +36,7 @@
  _/boot/efi/_++<machine-id>++_/_++<kernel-version>++_/initrd_,
  _/lib/modules/_++<kernel-version>++_/initrd_ or
 -_/boot/initramfs-_++<kernel-version>++_.img_ and contains the kernel modules of
-+_/boot/initrd-_++<kernel-version>++_ and contains the kernel modules of
++_/boot/initrd.img-_++<kernel-version>++_ and contains the kernel modules of
  the currently active kernel with version _++<kernel-version>++_.
  
  If the initramfs image already exists, dracut will display an error message, and
@@ -47,7 +47,7 @@
  _/boot/efi/<machine-id>/<kernel-version>/initrd_,
  _/lib/modules/<kernel-version>/initrd_ or
 -_/boot/initramfs-<kernel-version>.img_.
-+_/boot/initrd-<kernel-version>_.
++_/boot/initrd.img-<kernel-version>_.
  
  OPTIONS
  -------
@@ -59,8 +59,8 @@
          image="/lib/modules/${KERNEL_VERSION}/initramfs.img"
 -    elif [[ -f /boot/initramfs-${KERNEL_VERSION}.img ]]; then
 -        image="/boot/initramfs-${KERNEL_VERSION}.img"
-+    elif [[ -f /boot/initrd-${KERNEL_VERSION} ]]; then
-+        image="/boot/initrd-${KERNEL_VERSION}"
++    elif [[ -f /boot/initrd.img-${KERNEL_VERSION} ]]; then
++        image="/boot/initrd.img-${KERNEL_VERSION}"
      elif [[ $MACHINE_ID ]] \
          && mountpoint -q /efi; then
          image="/efi/${MACHINE_ID}/${KERNEL_VERSION}/initrd"
@@ -73,7 +73,7 @@
 -elif [[ -f /boot/initramfs-${KERNEL_VERSION}.img ]]; then
 -    IMG="/boot/initramfs-${KERNEL_VERSION}.img"
 +elif [[ -f /boot/initrd.img-${KERNEL_VERSION} ]]; then
-+    IMG="/boot/initrd-${KERNEL_VERSION}"
++    IMG="/boot/initrd.img-${KERNEL_VERSION}"
  elif mountpoint -q /efi; then
      IMG="/efi/$MACHINE_ID/$KERNEL_VERSION/initrd"
  elif mountpoint -q /boot/efi; then
