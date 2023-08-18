@@ -1,1 +1,2 @@
-extend-diff-ignore = "(^|/).+(\.asc)$"
+diff-ignore
+extend-diff-ignore = "(^|/).+(\.asc)$|.gitlab-ci.yml|.idea|.gitignore"

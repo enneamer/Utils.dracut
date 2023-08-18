@@ -7,3 +7,4 @@ vconsole
 microcode
 plymouth
 initrd-not-initramfs.patch
+0010-fix-do-not-wait-for-online.patch

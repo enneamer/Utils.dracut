@@ -1,0 +1,62 @@
+From: Enneamer <enneamer@enneamer.is>
+Date: Sun, 16 Jul 2023 19:40:27 +0800
+Subject: fix: do not wait for online
+
+---
+ modules.d/35network-manager/module-setup.sh              |  1 -
+ modules.d/35network-manager/nm-initrd.service            |  2 +-
+ .../35network-manager/nm-wait-online-initrd.service      | 16 ----------------
+ 3 files changed, 1 insertion(+), 18 deletions(-)
+ delete mode 100644 modules.d/35network-manager/nm-wait-online-initrd.service
+
+diff --git a/modules.d/35network-manager/module-setup.sh b/modules.d/35network-manager/module-setup.sh
+index e3dcc48..92e013f 100755
+--- a/modules.d/35network-manager/module-setup.sh
++++ b/modules.d/35network-manager/module-setup.sh
+@@ -49,7 +49,6 @@ install() {
+         inst_simple "$moddir"/initrd-no-auto-default.conf /usr/lib/NetworkManager/conf.d/
+ 
+         inst_simple "$moddir"/nm-initrd.service "$systemdsystemunitdir"/nm-initrd.service
+-        inst_simple "$moddir"/nm-wait-online-initrd.service "$systemdsystemunitdir"/nm-wait-online-initrd.service
+ 
+         # Adding default link
+         inst_multiple -o "${systemdnetwork}/99-default.link"
+diff --git a/modules.d/35network-manager/nm-initrd.service b/modules.d/35network-manager/nm-initrd.service
+index 3e24f52..add75ed 100644
+--- a/modules.d/35network-manager/nm-initrd.service
++++ b/modules.d/35network-manager/nm-initrd.service
+@@ -16,6 +16,7 @@ Type=dbus
+ BusName=org.freedesktop.NetworkManager
+ ExecReload=/usr/bin/busctl call org.freedesktop.NetworkManager /org/freedesktop/NetworkManager org.freedesktop.NetworkManager Reload u 0
+ ExecStart=/usr/sbin/NetworkManager --debug
++ExecStopPost=/bin/rm /run/NetworkManager/system-connections/*.nmconnection
+ KillMode=process
+ # The following gets changed to StandardOutput=tty by nm-config.sh
+ # when debug is enabled and a usable console is found.
+@@ -27,4 +28,3 @@ ProtectHome=read-only
+ 
+ [Install]
+ WantedBy=initrd.target
+-Also=nm-wait-online-initrd.service
+diff --git a/modules.d/35network-manager/nm-wait-online-initrd.service b/modules.d/35network-manager/nm-wait-online-initrd.service
+deleted file mode 100644
+index ac8762a..0000000
+--- a/modules.d/35network-manager/nm-wait-online-initrd.service
++++ /dev/null
+@@ -1,16 +0,0 @@
+-[Unit]
+-DefaultDependencies=no
+-Requires=nm-initrd.service
+-After=nm-initrd.service
+-Before=network-online.target
+-Before=dracut-initqueue.service
+-ConditionPathExists=/run/NetworkManager/initrd/neednet
+-
+-[Service]
+-Type=oneshot
+-ExecStart=/usr/bin/nm-online -s -q -t 3600
+-RemainAfterExit=yes
+-
+-[Install]
+-WantedBy=initrd.target
+-WantedBy=network-online.target

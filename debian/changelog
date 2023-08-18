@@ -1,3 +1,21 @@
+dracut (059-4+enneamer3) stable; urgency=medium
+
+  * chore: version bump
+
+ -- Enneamer <enneamer@enneamer.is>  Fri, 18 Aug 2023 21:08:39 +0800
+
+dracut (059-4+enneamer2) stable; urgency=medium
+
+  * feat: switch to CI templates
+
+ -- Enneamer <enneamer@enneamer.is>  Sun, 13 Aug 2023 21:02:12 +0800
+
+dracut (059-4+enneamer1) stable; urgency=medium
+
+  * fix: do not wait for online
+
+ -- Enneamer <enneamer@enneamer.is>  Sun, 16 Jul 2023 19:41:24 +0800
+
 dracut (059-4) unstable; urgency=low
 
   * Fix file name in patch initrd-not-initramfs.patch
